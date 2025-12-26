@@ -1,0 +1,44 @@
+name: Build ZanzAMP (Windows)
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout do código
+      uses: actions/checkout@v4
+
+    - name: Configurar MSVC
+      uses: ilammy/msvc-dev-cmd@v1
+
+    - name: Instalar CMake
+      uses: lukka/get-cmake@latest
+
+    - name: Instalar Inno Setup
+      run: choco install innosetup -y
+
+    - name: Configurar projeto
+      run: cmake -S ZanzAMP_Professional_Package -B build
+
+    - name: Compilar plugin
+      run: cmake --build build --config Release
+
+    - name: Criar instalador
+      run: iscc ZanzAMP_Professional_Package/Installer/ZanzAMP_Installer.iss
+
+    - name: Upload VST3
+      uses: actions/upload-artifact@v4
+      with:
+        name: ZanzAMP-VST3
+        path: build/**/*.vst3
+
+    - name: Upload Installer
+      uses: actions/upload-artifact@v4
+      with:
+        name: ZanzAMP-Installer
+        path: ZanzAMP_Professional_Package/Installer/*.exe
