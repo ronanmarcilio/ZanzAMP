@@ -2,9 +2,17 @@ cmake_minimum_required(VERSION 3.15)
 
 project(ZanzAMP VERSION 1.0.0)
 
-# Add JUCE
-# Nota: O usuário deve ter o JUCE baixado e apontar para ele
-add_subdirectory(JUCE)
+# Add JUCE (pode vir local ou via -DJUCE_ROOT no workflow)
+if (DEFINED JUCE_ROOT)
+    message(STATUS "Using JUCE from JUCE_ROOT: ${JUCE_ROOT}")
+    add_subdirectory(${JUCE_ROOT} JUCE)
+elseif (EXISTS "${CMAKE_CURRENT_LIST_DIR}/JUCE/CMakeLists.txt")
+    message(STATUS "Using JUCE from local folder: ${CMAKE_CURRENT_LIST_DIR}/JUCE")
+    add_subdirectory(JUCE)
+else()
+    message(FATAL_ERROR "JUCE not found. Set -DJUCE_ROOT=path/to/JUCE or add JUCE folder inside project.")
+endif()
+
 
 juce_add_plugin(ZanzAMP
     COMPANY_NAME "ZanzAudio"
