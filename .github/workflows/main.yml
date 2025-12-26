@@ -1,32 +1,47 @@
-name: Build ZanzAMP Profissional
-on: [push, workflow_dispatch]
+name: Build ZanzAMP (Windows)
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
-  build-windows:
+  build:
     runs-on: windows-latest
+
     steps:
       - name: Checkout do Código
         uses: actions/checkout@v4
 
       - name: Baixar JUCE
-        run: |
-          git clone --depth 1 https://github.com/juce-framework/JUCE.git
+        run: git clone --depth 1 https://github.com/juce-framework/JUCE.git JUCE
+
+      - name: Instalar Inno Setup
+        run: choco install innosetup -y
 
       - name: Configurar CMake
         run: |
-          cmake -B build -G "Visual Studio 17 2022" -A x64 -DJUCE_ROOT=./JUCE
+          cmake -S ZanzAMP_Professional_Package -B build -G "Visual Studio 17 2022" -A x64 -DJUCE_ROOT="${{ github.workspace }}\JUCE"
 
-      - name: Compilar Plugin (Release )
-        run: |
-          cmake --build build --config Release --parallel
+      - name: Compilar (Release)
+        run: cmake --build build --config Release --parallel
 
-      - name: Upload do Plugin VST3
+      - name: Criar instalador
+        run: iscc ZanzAMP_Professional_Package/Installer/ZanzAMP_Installer.iss
+
+      - name: Upload VST3 (procura automaticamente)
         uses: actions/upload-artifact@v4
         with:
-          name: ZanzAMP-Windows-VST3
-          path: build/ZanzAMP_artefacts/Release/VST3/ZanzAMP.vst3
+          name: ZanzAMP-VST3
+          path: build/**/*.vst3
 
-      - name: Upload do Projeto Completo (para Debug)
+      - name: Upload Installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: ZanzAMP-Installer
+          path: ZanzAMP_Professional_Package/Installer/*.exe
+
+      - name: Upload logs (se falhar)
         if: failure()
         uses: actions/upload-artifact@v4
         with:
