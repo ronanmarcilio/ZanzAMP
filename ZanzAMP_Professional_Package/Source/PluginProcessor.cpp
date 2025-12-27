@@ -27,9 +27,9 @@ void ZanzAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 
     oversampling.initProcessing(samplesPerBlock);
     
-    // DC Offset Filter (HPF 20Hz)
-    dcFilter.setCoefficients(juce::IIRCoefficients::makeHighPass(sampleRate, 20.0));
-    dcFilter.prepare(spec);
+  dcFilter.state = juce::dsp::IIR::Coefficients<float>::makeHighPass(sampleRate, 20.0f);
+dcFilter.prepare(spec);
+
 
     // Initialize smoothers
     for (auto& pair : smoothers) {
